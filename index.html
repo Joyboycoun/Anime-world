@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anime World</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #1F1619, #474456);
+      color: #E7E7E7;
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #D09066;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      color: #1F1619;
+      font-size: 24px;
+      margin: 0;
+    }
+    .menu {
+      display: flex;
+      gap: 15px;
+    }
+    .menu a {
+      color: #E7E7E7;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .menu a:hover {
+      color: #D09066;
+    }
+    .search-bar {
+      display: flex;
+      align-items: center;
+      background: #E7E7E7;
+      border-radius: 25px;
+      padding: 5px 15px;
+    }
+    .search-bar input {
+      border: none;
+      outline: none;
+      background: none;
+      font-size: 16px;
+      flex: 1;
+      padding: 5px;
+    }
+    .search-bar button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #1F1619;
+    }
+    #animeResults {
+      padding: 20px;
+    }
+    .anime-card {
+      display: flex;
+      gap: 15px;
+      margin: 15px 0;
+      background: #2C2C2C;
+      padding: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .anime-card:hover {
+      transform: scale(1.05);
+    }
+    .anime-card img {
+      width: 100px;
+      height: 150px;
+      border-radius: 5px;
+    }
+    .anime-card h3 {
+      color: #D09066;
+    }
+
+    /* Personalized Section */
+    .personalized {
+      text-align: center;
+      margin-top: 50px;
+      color: #D09066;
+      font-size: 30px;
+      font-weight: 600;
+    }
+
+    .about-you {
+      text-align: center;
+      color: #E7E7E7;
+      font-size: 18px;
+      max-width: 800px;
+      margin: 20px auto;
+    }
+    .highlight {
+      color: #FFD700;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Anime World</h1>
+    <div class="menu">
+      <a href="top_animes.html">Top Animes</a>
+      <a href="where_to_watch.html">Where to Watch</a>
+      <a href="forum.html">Forum</a>
+    </div>
+  </header>
+  <main>
+    <!-- Personalized Section -->
+    <section class="personalized">
+      <h1>Welcome to Anime World</h1>
+      <p>Created by <span class="highlight">Michael Amo</span>, also known as <span class="highlight">Joyboy</span></p>
+    </section>
+
+    <section class="about-you">
+      <h2>About Michael Amo (Joyboy)</h2>
+      <p>
+        Michael Amo, also known as Joyboy, is a passionate creator and anime enthusiast who aims to bring the best content to fans around the world. Known for his technical skills and love for anime, Joyboy has always been dedicated to creating platforms where fans can connect, discover, and enjoy their favorite animes. With a vision to make anime accessible and exciting, Joyboy’s work is driven by a commitment to excellence and a love for the anime community.
+      </p>
+      <p>
+        Whether you're here to explore top animes, discover where to watch them, or simply engage with fellow anime lovers in the forum, Michael Amo (Joyboy) is your go-to source for everything anime. <strong>Anime World</strong> is just the beginning of an incredible journey into the world of anime.
+      </p>
+    </section>
+
+    <!-- Anime Search Section -->
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search anime...">
+      <button onclick="searchAnime()"><i class="fas fa-search"></i></button>
+    </div>
+    <section id="animeResults"></section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js"></script>
+  <script>
+    const API_BASE = "https://api.jikan.moe/v4";
+    const YOUTUBE_API_KEY = "AIzaSyDV4CbCKeWRYbBMjHRhrqlcAXYdmxJAvnE";  // Your YouTube API key here
+
+    async function searchAnime() {
+      const query = document.getElementById("searchInput").value;
+      const resultsContainer = document.getElementById("animeResults");
+
+      resultsContainer.innerHTML = "";
+
+      if (query.trim() === "") return;
+
+      try {
+        const response = await axios.get(`${API_BASE}/anime`, {
+          params: { q: query }
+        });
+
+        const animes = response.data.data;
+
+        if (animes.length === 0) {
+          resultsContainer.innerHTML = "<p>No results found.</p>";
+          return;
+        }
+
+        animes.forEach(async (anime) => {
+          const card = document.createElement("div");
+          card.className = "anime-card";
+
+          const trailerLink = await getAnimeTrailer(anime.title);
+
+          card.innerHTML = `
+            <img src="${anime.images.jpg.image_url}" alt="${anime.title}">
+            <div>
+              <h3>${anime.title}</h3>
+              <p>${anime.synopsis ? anime.synopsis.substring(0, 100) + "..." : "No synopsis available."}</p>
+            </div>
+          `;
+          
+          card.onclick = () => window.open(trailerLink, "_blank");
+
+          resultsContainer.appendChild(card);
+        });
+      } catch (error) {
+        console.error(error);
+        resultsContainer.innerHTML = "<p>Something went wrong. Please try again.</p>";
+      }
+    }
+
+    async function getAnimeTrailer(animeTitle) {
+      try {
+        const response = await axios.get("https://www.googleapis.com/youtube/v3/search", {
+          params: {
+            part: "snippet",
+            q: `${animeTitle} anime trailer`,
+            type: "video",
+            key: YOUTUBE_API_KEY
+          }
+        });
+
+        const videoId = response.data.items[0]?.id?.videoId;
+        if (videoId) {
+          return `https://www.youtube.com/watch?v=${videoId}`;
+        } else {
+          return "#"; // Fallback if no trailer is found
+        }
+      } catch (error) {
+        console.error("Error fetching trailer:", error);
+        return "#"; // Fallback in case of error
+      }
+    }
+  </script>
+</body>
+</html>
